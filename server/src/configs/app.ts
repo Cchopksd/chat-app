@@ -8,6 +8,7 @@ dotenv.config();
 
 import userRoutes from "../routes/user.route";
 import { errorHandler, notFound } from "../middlewares/error.middleware";
+import type { ErrorRequestHandler } from "express";
 
 const app = express();
 
@@ -29,7 +30,8 @@ app.use(
 );
 
 app.use("/api/users", userRoutes);
-app.use(errorHandler);
 app.use(notFound);
+app.use(errorHandler as ErrorRequestHandler);
+
 export default app;
 
