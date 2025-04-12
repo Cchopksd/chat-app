@@ -1,9 +1,14 @@
 // src/services/UserService.ts
 import { CreateUserDTO } from "../dtos/create-user.dto";
-import { IUser } from "../models/User";
+import { IUser } from "../models/user";
 import { UserRepository } from "../repositories/user.repo";
 
-export class UserService {
+export interface IUserService {
+  createUser(data: Partial<IUser>): Promise<IUser>;
+  getAllUsers(): Promise<IUser[]>;
+}
+
+export class UserService implements IUserService {
   constructor(private readonly userRepository: UserRepository) {}
 
   public async createUser(createUserDTO: CreateUserDTO): Promise<any> {

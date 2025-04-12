@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { UserService } from "../services/user.service";
+import { IUserService } from "../services/user.service";
 import { CreateUserSchema, CreateUserDTO } from "../dtos/create-user.dto";
 
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: IUserService) {}
 
   public async createUser(req: Request, res: Response): Promise<void> {
     const validationResult = CreateUserSchema.safeParse(req.body);

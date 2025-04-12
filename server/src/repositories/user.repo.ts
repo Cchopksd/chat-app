@@ -1,6 +1,11 @@
-import { UserModel, IUser } from "../models/User";
+import { UserModel, IUser } from "../models/user";
 
-export class UserRepository {
+export interface IUserRepository {
+  create(user: IUser): Promise<IUser>;
+  findAll(): Promise<IUser[]>;
+}
+
+export class UserRepository implements IUserRepository {
   async create(data: Partial<IUser>): Promise<IUser> {
     const user = new UserModel(data);
     return user.save();
