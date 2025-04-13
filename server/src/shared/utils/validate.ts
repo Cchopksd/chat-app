@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema } from "zod";
-import { BadRequestException } from "../utils/exceptions/http.exception";
+import { BadRequestException } from "../exceptions/http.exception";
 
 export const validateBody =
   (schema: ZodSchema<any>) =>

@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import {
   BadRequestException,
   HttpException,
-} from "../utils/exceptions/http.exception";
-import { logger } from "../utils/logger";
+} from "../exceptions/http.exception";
+import { logger } from "../logger/logger";
 
 export function errorHandler(
   err: any,

@@ -1,11 +1,11 @@
-import { CreateUserDTO } from "../dtos/create-user.dto";
-import { IUser } from "../models/user";
-import { UserRepository } from "../repositories/user.repo";
+import { CreateUserDTO } from "./dtos/create-user.dto";
+import { IUser } from "./user";
+import { UserRepository } from "./user.repo";
 import {
   ConflictException,
   NotFoundException,
-} from "../utils/exceptions/http.exception";
-import { hashPassword } from "../utils/hashing";
+} from "../../shared/exceptions/http.exception";
+import { hashPassword } from "../../shared/utils/hashing";
 
 export interface IUserService {
   createUser(data: CreateUserDTO): Promise<IUser>;

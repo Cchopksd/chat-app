@@ -6,12 +6,12 @@ import cors from "cors";
 
 dotenv.config();
 
-import userRoutes from "../routes/user.route";
+import userRoutes from "../modules/user/user.route";
 import {
   errorHandler,
   handleSyntaxError,
   notFound,
-} from "../middlewares/error.middleware";
+} from "../shared/middlewares/error.middleware";
 import type { ErrorRequestHandler } from "express";
 
 const app = express();

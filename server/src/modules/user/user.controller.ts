@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { IUserService } from "../services/user.service";
-import { CreateUserSchema, CreateUserDTO } from "../dtos/create-user.dto";
+import { IUserService } from "./user.service";
+import { CreateUserSchema, CreateUserDTO } from "./dtos/create-user.dto";
 import {
   BadRequestException,
   successResponse,
-} from "../utils/exceptions/http.exception";
+} from "../../shared/exceptions/http.exception";
 
 export class UserController {
   constructor(private readonly userService: IUserService) {}
