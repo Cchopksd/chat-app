@@ -10,23 +10,19 @@ export class UserController {
   constructor(private readonly userService: IUserService) {}
 
   public async createUser(req: Request, res: Response): Promise<void> {
-    const validationResult = CreateUserSchema.safeParse(req.body);
+    const user = await this.userService.createUser(req.body as CreateUserDTO);
+    successResponse(res, user, "User created successfully");
+  }
 
-    if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((err) => ({
-        field: err.path.join("."),
-        message: err.message,
-      }));
+  public async findByUserInfo(req: Request, res: Response): Promise<void> {
+    const { email, name } = req.body;
+    const user = await this.userService.findByUserInfo({ email, name });
 
-      throw new BadRequestException("Validation Failed", errors);
+    if (!user) {
+      throw new BadRequestException("User Not Found");
     }
 
-    try {
-      const user = await this.userService.createUser(validationResult.data);
-      successResponse(res, user, "User created successfully");
-    } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
-    }
+    successResponse(res, user, "User retrieved successfully");
   }
 
   public async getAllUsers(_req: Request, res: Response): Promise<void> {

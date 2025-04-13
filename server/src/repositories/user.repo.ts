@@ -3,6 +3,8 @@ import { UserModel, IUser } from "../models/user";
 export interface IUserRepository {
   create(user: IUser): Promise<IUser>;
   findAll(): Promise<IUser[]>;
+  findByEmail(email: string): Promise<IUser | null>;
+  findByUserInfo(email: string, name: string): Promise<IUser | null>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -17,6 +19,10 @@ export class UserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<IUser | null> {
     return UserModel.findOne({ email }).exec();
+  }
+
+  async findByUserInfo(email: string, name: string): Promise<IUser | null> {
+    return UserModel.findOne({ email, name }).exec();
   }
 }
 

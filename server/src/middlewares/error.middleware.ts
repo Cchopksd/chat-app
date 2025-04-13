@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { HttpException } from "../utils/exceptions/http.exception";
+import {
+  BadRequestException,
+  HttpException,
+} from "../utils/exceptions/http.exception";
 
 export function errorHandler(
   err: any,
@@ -15,7 +18,7 @@ export function errorHandler(
       ...(err.data && { data: err.data }),
     });
   }
-
+  console.error(err);
   return res.status(500).json({
     success: false,
     statusCode: 500,
@@ -25,5 +28,17 @@ export function errorHandler(
 
 export function notFound(req: Request, res: Response, next: NextFunction) {
   res.status(404).json({ message: "Not Found" });
+}
+
+export function handleSyntaxError(
+  err: SyntaxError,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (err instanceof SyntaxError && "body" in err) {
+    throw new BadRequestException(err.message);
+  }
+  next(err);
 }
 

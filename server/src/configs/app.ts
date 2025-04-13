@@ -7,7 +7,11 @@ import cors from "cors";
 dotenv.config();
 
 import userRoutes from "../routes/user.route";
-import { errorHandler, notFound } from "../middlewares/error.middleware";
+import {
+  errorHandler,
+  handleSyntaxError,
+  notFound,
+} from "../middlewares/error.middleware";
 import type { ErrorRequestHandler } from "express";
 
 const app = express();
@@ -30,6 +34,7 @@ app.use(
 );
 
 app.use("/api/users", userRoutes);
+app.use(handleSyntaxError as ErrorRequestHandler);
 app.use(notFound);
 app.use(errorHandler as ErrorRequestHandler);
 
