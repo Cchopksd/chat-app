@@ -3,6 +3,7 @@ import {
   BadRequestException,
   HttpException,
 } from "../utils/exceptions/http.exception";
+import { logger } from "../utils/logger";
 
 export function errorHandler(
   err: any,
@@ -19,6 +20,7 @@ export function errorHandler(
     });
   }
   console.error(err);
+  logger.error(err);
   return res.status(500).json({
     success: false,
     statusCode: 500,

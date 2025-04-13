@@ -16,6 +16,7 @@ router.post("/", validateBody(CreateUserSchema), (req, res) =>
   userController.createUser(req, res)
 );
 router.get("/", (req, res) => userController.getAllUsers(req, res));
+router.get("/info", (req, res) => userController.findByUserInfo(req, res));
 
 export default router;
 

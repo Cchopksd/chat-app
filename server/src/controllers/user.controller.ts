@@ -15,12 +15,11 @@ export class UserController {
   }
 
   public async findByUserInfo(req: Request, res: Response): Promise<void> {
-    const { email, name } = req.body;
-    const user = await this.userService.findByUserInfo({ email, name });
-
-    if (!user) {
-      throw new BadRequestException("User Not Found");
-    }
+    const { email, name } = req.query;
+    const user = await this.userService.findByUserInfo({
+      email: email as string | undefined,
+      name: name as string | undefined,
+    });
 
     successResponse(res, user, "User retrieved successfully");
   }
