@@ -7,14 +7,28 @@ export class WebSocketGateway {
   private wss: WebSocketServer;
   private roomManager: RoomManager;
 
+  private startHeartbeat() {
+    setInterval(() => {
+      this.wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.ping();
+        }
+      });
+    }, 30000);
+  }
+
   constructor(server: any) {
     this.wss = new WebSocketServer({ server });
     this.roomManager = new RoomManager();
+    this.startHeartbeat();
   }
 
   public start() {
+    console.log("🟢 WebSocket server started and waiting for connections...");
     this.wss.on("connection", (socket: WebSocket) => {
       let currentUser: Client | null = null;
+
+      console.log("🔌 New WebSocket connection established");
 
       socket.on("message", (data) => {
         try {
@@ -70,7 +84,10 @@ export class WebSocketGateway {
               break;
           }
         } catch (err) {
-          logger.error("WebSocket message parse error", err);
+          this.wss.on("error", (error) => {
+            console.log("WebSocket server error:", error);
+            logger.error("WebSocket server error:", error);
+          });
         }
       });
 

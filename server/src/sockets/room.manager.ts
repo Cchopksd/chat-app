@@ -21,6 +21,10 @@ export class RoomManager {
     if (!room) return;
 
     this.rooms[client.roomId] = room.filter((c) => c.socket !== client.socket);
+
+    if (this.rooms[client.roomId].length === 0) {
+      delete this.rooms[client.roomId];
+    }
   }
 
   public broadcast(roomId: string, message: any, excludeSocket?: WebSocket) {

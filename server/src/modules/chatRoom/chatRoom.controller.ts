@@ -13,6 +13,10 @@ export class ChatRoomController {
     successResponse(res, chatRoom, "Chat room created successfully");
   }
 
-  public async getByID(req: Request, res: Response): Promise<void> {}
+  public async getByID(req: Request, res: Response): Promise<void> {
+    const roomID = req.params.roomID;
+    const chatRoom = await this.chatRoomService.getByID(roomID);
+    successResponse(res, chatRoom, "Room retrieved successfully");
+  }
 }
 

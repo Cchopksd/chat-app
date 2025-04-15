@@ -10,7 +10,11 @@ import { hashPassword } from "../../shared/utils/hashing";
 export interface IUserService {
   createUser(data: CreateUserDTO): Promise<IUser>;
   getAllUsers(): Promise<IUser[]>;
-  findByUserInfo(data: { email?: string; name?: string }): Promise<IUser[]>;
+  findUserByID(id: string): Promise<IUser | null>;
+  findByUserInfo(data: {
+    email?: string;
+    name?: string;
+  }): Promise<IUser[] | []>;
 }
 
 export class UserService implements IUserService {
@@ -32,16 +36,22 @@ export class UserService implements IUserService {
     return newUser;
   }
 
+  public async findUserByID(id: string): Promise<IUser | null> {
+    const user = await this.userRepository.findUserByID(id);
+    return user;
+  }
+
   public async findByUserInfo(data: {
     email?: string;
     name?: string;
-  }): Promise<IUser[]> {
+  }): Promise<IUser[] | []> {
     const user = await this.userRepository.findByUserInfo(
       data.email,
       data.name
     );
-    if (!user || user.length <= 0)
-      throw new NotFoundException("User not found");
+    if (!user || user.length <= 0) {
+      return [];
+    }
 
     return user;
   }

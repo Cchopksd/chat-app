@@ -3,6 +3,7 @@ import { IChatRoom, ChatRoomModel } from "./chatRoom.model";
 export interface IChatRoomRepository {
   createChatRoom(data: Partial<IChatRoom>): Promise<IChatRoom>;
   findChatRoomById(id: string): Promise<IChatRoom | null>;
+  findMemberInRoom(roomId: string, memberId: string): Promise<boolean>;
   findChatRoomsByMember(memberId: string): Promise<IChatRoom[]>;
 }
 
@@ -13,7 +14,22 @@ export class ChatRoomRepository implements IChatRoomRepository {
   }
 
   async findChatRoomById(id: string): Promise<IChatRoom | null> {
-    return ChatRoomModel.findById(id).populate("chat").exec();
+    return ChatRoomModel.findById(id)
+      .populate({
+        path: "chat",
+        model: "Chat",
+        options: { sort: { createdAt: -1 } },
+      })
+      .exec();
+  }
+
+  async findMemberInRoom(roomId: string, memberId: string): Promise<boolean> {
+    const room = await ChatRoomModel.findOne({
+      _id: roomId,
+      members: memberId,
+    }).lean();
+
+    return !!room;
   }
 
   async findChatRoomsByMember(memberId: string): Promise<IChatRoom[]> {
