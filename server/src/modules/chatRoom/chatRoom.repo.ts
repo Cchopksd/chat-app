@@ -14,13 +14,7 @@ export class ChatRoomRepository implements IChatRoomRepository {
   }
 
   async findChatRoomById(id: string): Promise<IChatRoom | null> {
-    return ChatRoomModel.findById(id)
-      .populate({
-        path: "chat",
-        model: "Chat",
-        options: { sort: { createdAt: -1 } },
-      })
-      .exec();
+    return ChatRoomModel.findById(id).exec();
   }
 
   async findMemberInRoom(roomId: string, memberId: string): Promise<boolean> {

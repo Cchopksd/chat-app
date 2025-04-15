@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { ChatRoomService } from "./chatRoom.service";
+import { IChatRoomService } from "./chatRoom.service";
 import { successResponse } from "../../shared/exceptions/http.exception";
 import { CreateChatRoomDTO } from "./dtos/create-room.dto";
 
 export class ChatRoomController {
-  constructor(private readonly chatRoomService: ChatRoomService) {}
+  constructor(private readonly chatRoomService: IChatRoomService) {}
 
   public async createChatRoom(req: Request, res: Response): Promise<void> {
     const chatRoom = await this.chatRoomService.createChatRoom(

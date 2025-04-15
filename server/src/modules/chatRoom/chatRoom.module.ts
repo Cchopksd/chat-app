@@ -20,9 +20,9 @@ export class ChatRoomModule {
   public createRouter(): Router {
     const router = Router();
 
-    router.post("", validateBody(CreateChatRoomSchema), (req, res) =>
-      this.chatRoomController.createChatRoom(req, res)
-    );
+    router.post("", validateBody(CreateChatRoomSchema), (req, res) => {
+      return this.chatRoomController.createChatRoom(req, res);
+    });
 
     router.get("/:roomID", validateBody(roomIDSchema, "params"), (req, res) =>
       this.chatRoomController.getByID(req, res)

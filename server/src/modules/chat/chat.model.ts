@@ -13,7 +13,6 @@ const ChatSchema = new Schema<IChat>(
     room_id: { type: Schema.Types.ObjectId, ref: "ChatRoom", required: true },
     sender_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
     content: { type: String, required: true },
-
     message_type: {
       type: String,
       enum: ["text", "image", "file"],

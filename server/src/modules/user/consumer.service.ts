@@ -3,7 +3,7 @@ import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { UserService } from "./user.service";
 import { initUserRPCConsumer } from "./user.consumer";
 
-export class ConsumerService {
+export class UserConsumerService {
   constructor(
     private readonly rabbitClient: RabbitMQClient,
     private readonly userService: UserService
@@ -14,4 +14,3 @@ export class ConsumerService {
     console.log("✅ User consumer initialized");
   }
 }
-

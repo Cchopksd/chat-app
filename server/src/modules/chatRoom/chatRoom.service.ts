@@ -29,6 +29,7 @@ export class ChatRoomService implements IChatRoomService {
     if (!users || users.length === 0) {
       throw new BadRequestException("User does not exist");
     }
+
     const newRoom = await this.chatRoomRepository.createChatRoom(data);
 
     return newRoom;

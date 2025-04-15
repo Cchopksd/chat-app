@@ -6,22 +6,25 @@ import { UserRepository } from "./user.repo";
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { validateBody } from "../../shared/utils/validate";
 import { CreateUserSchema } from "./dtos/create-user.dto";
-import { ConsumerService } from "./consumer.service";
+import { UserConsumerService } from "./consumer.service";
 
 export class UserModule {
   private userController: UserController;
-  private consumerService: ConsumerService;
+  private UserConsumerService: UserConsumerService;
 
   constructor(readonly rabbitClient: RabbitMQClient) {
     const userRepository = new UserRepository();
     const userService = new UserService(userRepository);
 
     this.userController = new UserController(userService);
-    this.consumerService = new ConsumerService(rabbitClient, userService);
+    this.UserConsumerService = new UserConsumerService(
+      rabbitClient,
+      userService
+    );
   }
 
   public async initializeConsumers() {
-    await this.consumerService.initializeConsumers();
+    await this.UserConsumerService.initializeConsumers();
   }
 
   public createRouter(): Router {
