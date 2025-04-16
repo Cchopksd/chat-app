@@ -7,7 +7,7 @@ import { QUEUE_NAMES } from "../../shared/rabbitmq/queues";
 
 export interface IChatRoomService {
   createChatRoom(data: CreateChatRoomDTO): Promise<IChatRoom>;
-  getByID(roomID: string): Promise<IChatRoom | null>;
+  getByID(roomID: string): Promise<any | null>;
 }
 
 export class ChatRoomService implements IChatRoomService {
@@ -35,9 +35,17 @@ export class ChatRoomService implements IChatRoomService {
     return newRoom;
   }
 
-  public async getByID(roomID: string): Promise<IChatRoom | null> {
-    const room = this.chatRoomRepository.findChatRoomById(roomID);
-    return room;
+  public async getByID(roomID: string): Promise<any | null> {
+    const room = await this.chatRoomRepository.findChatRoomById(roomID);
+
+    const chats = await this.rabbitClient.sendRPC<any>(
+      QUEUE_NAMES.CHAT.GET_CHATS,
+      { id: roomID }
+    );
+    return {
+      ...room,
+      ...chats,
+    };
   }
 
   private hasDuplicates<T>(arr: T[]): boolean {

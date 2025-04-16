@@ -16,7 +16,7 @@ export class RabbitMQService {
       this.channel = await this.connection.createChannel();
       this.client = new RabbitMQClient(this.channel);
 
-      console.log("✅ Connected to RabbitMQ");
+      console.info("✅ Connected to RabbitMQ");
     } catch (error) {
       console.error("❌ Failed to connect to RabbitMQ:", error);
       throw error;
@@ -36,7 +36,7 @@ export class RabbitMQService {
     try {
       await this.channel?.close();
       await this.connection?.close();
-      console.log("✅ RabbitMQ connection closed");
+      console.info("✅ RabbitMQ connection closed");
     } catch (error) {
       console.error("❌ Error closing RabbitMQ connection:", error);
     }

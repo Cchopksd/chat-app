@@ -1,7 +1,6 @@
-// src/modules/user/consumer.service.ts
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { UserService } from "./user.service";
-import { initUserRPCConsumer } from "./user.consumer";
+import { UserRPCConsumer } from "./user.consumer";
 
 export class UserConsumerService {
   constructor(
@@ -10,7 +9,10 @@ export class UserConsumerService {
   ) {}
 
   public async initializeConsumers(): Promise<void> {
-    await initUserRPCConsumer(this.rabbitClient, this.userService);
-    console.log("✅ User consumer initialized");
+    const consumers = [
+      new UserRPCConsumer(this.rabbitClient, this.userService),
+    ];
+
+    await Promise.all(consumers.map((c) => c.init()));
   }
 }

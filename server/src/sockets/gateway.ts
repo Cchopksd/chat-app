@@ -24,11 +24,11 @@ export class WebSocketGateway {
   }
 
   public start() {
-    console.log("🟢 WebSocket server started and waiting for connections...");
+    console.info("🟢 WebSocket server started and waiting for connections...");
     this.wss.on("connection", (socket: WebSocket) => {
       let currentUser: Client | null = null;
 
-      console.log("🔌 New WebSocket connection established");
+      console.info("🔌 New WebSocket connection established");
 
       socket.on("message", (data) => {
         try {
@@ -85,7 +85,7 @@ export class WebSocketGateway {
           }
         } catch (err) {
           this.wss.on("error", (error) => {
-            console.log("WebSocket server error:", error);
+            console.info("WebSocket server error:", error);
             logger.error("WebSocket server error:", error);
           });
         }

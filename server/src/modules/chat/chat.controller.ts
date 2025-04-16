@@ -11,5 +11,11 @@ export class ChatController {
 
     successResponse(res, chat, "Chat created successfully");
   }
+
+  public async findChatByRoomID(req: Request, res: Response): Promise<void> {
+    const chats = await this.chatService.findChatByRoomID(req.params.roomID);
+
+    successResponse(res, chats, "Chat retrieved successfully");
+  }
 }
 

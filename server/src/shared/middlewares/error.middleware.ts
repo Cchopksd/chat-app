@@ -29,7 +29,7 @@ export function errorHandler(
 }
 
 export function notFound(req: Request, res: Response, next: NextFunction) {
-  res.status(404).json({ message: "Not Found" });
+  res.status(404).json({ message: `Route ${req.path} Not Found` });
 }
 
 export function handleSyntaxError(

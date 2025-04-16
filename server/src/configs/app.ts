@@ -12,6 +12,7 @@ import {
   handleSyntaxError,
   notFound,
 } from "../shared/middlewares/error.middleware";
+import { ChatModule } from "../modules/chat/chat.module";
 
 export class App {
   private app: Application;
@@ -48,6 +49,9 @@ export class App {
 
     const chatRoomModule = new ChatRoomModule(this.rabbitClient);
     this.app.use("/api/chat-rooms", chatRoomModule.createRouter());
+
+    const chatModule = new ChatModule(this.rabbitClient);
+    this.app.use("/api/chats", chatModule.createRouter());
   }
 
   private setupErrorHandling() {

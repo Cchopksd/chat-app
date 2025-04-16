@@ -9,6 +9,7 @@ import { WebSocketGateway } from "./sockets/gateway";
 import { App } from "./configs/app";
 
 import { UserModule } from "./modules/user/user.module";
+import { ChatModule } from "./modules/chat/chat.module";
 
 const PORT = process.env.PORT || 5000;
 const ENV = process.env.NODE_ENV || "development";
@@ -26,6 +27,8 @@ async function bootstrap() {
 
     const userModule = new UserModule(rabbitClient);
     await userModule.initializeConsumers();
+    const chatModule = new ChatModule(rabbitClient);
+    await chatModule.initializeConsumers();
 
     const appInstance = new App(rabbitClient);
     const server = http.createServer(appInstance.getApp());
@@ -34,15 +37,14 @@ async function bootstrap() {
     wsGateway.start();
 
     server.listen(PORT, () => {
-      console.log(`🚀 Server started on port ${PORT} [${ENV}]`);
+      console.info(`🚀 Server started on port ${PORT} [${ENV}]`);
     });
 
     process.on("SIGINT", async () => {
-      console.log("👋 Gracefully shutting down...");
+      console.info("👋 Gracefully shutting down...");
       await rabbitService.close();
       process.exit(0);
     });
-
   } catch (error) {
     console.error("❌ Error during bootstrap process:", error);
     process.exit(1);

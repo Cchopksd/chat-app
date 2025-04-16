@@ -5,4 +5,8 @@ export const QUEUE_NAMES = {
   CHAT_ROOM: {
     CREATE_ROOM: "chatroom.create",
   },
+  CHAT: {
+    GET_CHATS: "chats.get",
+  },
 };
+
