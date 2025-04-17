@@ -1,18 +1,20 @@
 import { CreateChatRoomDTO } from "./dtos/create-room.dto";
 import { IChatRoom } from "./chatRoom.model";
-import { ChatRoomRepository } from "./chatRoom.repo";
+import { IChatRoomRepository } from "./chatRoom.repo";
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { BadRequestException } from "../../shared/exceptions/http.exception";
 import { QUEUE_NAMES } from "../../shared/rabbitmq/queues";
+import { AddMemberDTO } from "./dtos/add-member.dto";
 
 export interface IChatRoomService {
   createChatRoom(data: CreateChatRoomDTO): Promise<IChatRoom>;
   getByID(roomID: string): Promise<any | null>;
+  modifiedMember(data: AddMemberDTO): Promise<IChatRoom | null>;
 }
 
 export class ChatRoomService implements IChatRoomService {
   constructor(
-    private readonly chatRoomRepository: ChatRoomRepository,
+    private readonly chatRoomRepository: IChatRoomRepository,
     private readonly rabbitClient: RabbitMQClient
   ) {}
 
@@ -23,13 +25,19 @@ export class ChatRoomService implements IChatRoomService {
 
     const users = await this.rabbitClient.sendRPC<any[]>(
       QUEUE_NAMES.USER.GET_USER,
-      { id: data.members}
+      { id: data.members }
     );
 
     if (!users || users.length === 0) {
       throw new BadRequestException("User does not exist");
     }
 
+    if (data.members.length > 1) {
+      data = {
+        ...data,
+        isGroup: true,
+      };
+    }
     const newRoom = await this.chatRoomRepository.createChatRoom(data);
 
     return newRoom;
@@ -48,8 +56,25 @@ export class ChatRoomService implements IChatRoomService {
     };
   }
 
+  public async modifiedMember(data: AddMemberDTO): Promise<IChatRoom | null> {
+    const existRoom = await this.chatRoomRepository.findChatRoomById(
+      data.room_id
+    );
+
+    if (!existRoom) {
+      throw new BadRequestException("Room is not defied");
+    }
+
+    if (!existRoom.isGroup) {
+      throw new BadRequestException("Room is not group");
+    }
+
+    const room = await this.chatRoomRepository.modifiedMember(data);
+
+    return room;
+  }
+
   private hasDuplicates<T>(arr: T[]): boolean {
     return new Set(arr).size !== arr.length;
   }
 }
-

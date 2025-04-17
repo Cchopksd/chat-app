@@ -18,5 +18,9 @@ export class ChatRoomController {
     const chatRoom = await this.chatRoomService.getByID(roomID);
     successResponse(res, chatRoom, "Room retrieved successfully");
   }
-}
 
+  public async modifiedMember(req: Request, res: Response): Promise<void> {
+    const chatRoom = await this.chatRoomService.modifiedMember(req.body);
+    successResponse(res, chatRoom, "Room updated successfully");
+  }
+}

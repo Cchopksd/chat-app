@@ -4,6 +4,7 @@ export interface IChatRoomRepository {
   createChatRoom(data: Partial<IChatRoom>): Promise<IChatRoom>;
   findChatRoomById(id: string): Promise<IChatRoom | null>;
   findMemberInRoom(roomId: string, memberId: string): Promise<boolean>;
+  modifiedMember(data: any): Promise<IChatRoom | null>;
   findChatRoomsByMember(memberId: string): Promise<IChatRoom[]>;
 }
 
@@ -26,8 +27,17 @@ export class ChatRoomRepository implements IChatRoomRepository {
     return !!room;
   }
 
+  async modifiedMember(data: any): Promise<IChatRoom | null> {
+    const room = await ChatRoomModel.findByIdAndUpdate(
+      data.room_id,
+      { $set: { members: data.members } },
+      { new: true }
+    );
+    console.log(room);
+    return room;
+  }
+
   async findChatRoomsByMember(memberId: string): Promise<IChatRoom[]> {
     return ChatRoomModel.find({ members: memberId }).exec();
   }
 }
-

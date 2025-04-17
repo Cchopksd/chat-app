@@ -2,16 +2,14 @@ import express, { Application, ErrorRequestHandler } from "express";
 import morgan from "morgan";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 import { UserModule } from "../modules/user/user.module";
 
 import { ChatRoomModule } from "../modules/chatRoom/chatRoom.module";
 import { RabbitMQClient } from "../shared/rabbitmq/RabbitMQClient";
-import {
-  errorHandler,
-  handleSyntaxError,
-  notFound,
-} from "../shared/middlewares/error.middleware";
+import { ErrorMiddleware } from "../shared/middlewares/error.middleware";
+
 import { ChatModule } from "../modules/chat/chat.module";
 import { AuthModule } from "../modules/auth/auth.module";
 
@@ -29,6 +27,7 @@ export class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(morgan("dev"));
+    this.app.use(cookieParser());
     this.app.use(
       helmet({
         contentSecurityPolicy: false,
@@ -59,9 +58,9 @@ export class App {
   }
 
   private setupErrorHandling() {
-    this.app.use(handleSyntaxError as ErrorRequestHandler);
-    this.app.use(notFound);
-    this.app.use(errorHandler as ErrorRequestHandler);
+    this.app.use(ErrorMiddleware.handleSyntaxError as ErrorRequestHandler);
+    this.app.use(ErrorMiddleware.handleNotFound);
+    this.app.use(ErrorMiddleware.handleError as ErrorRequestHandler);
   }
 
   public getApp(): Application {
