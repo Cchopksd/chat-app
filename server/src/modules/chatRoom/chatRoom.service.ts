@@ -23,7 +23,7 @@ export class ChatRoomService implements IChatRoomService {
 
     const users = await this.rabbitClient.sendRPC<any[]>(
       QUEUE_NAMES.USER.GET_USER,
-      { id: data.members.map((member) => member) }
+      { id: data.members}
     );
 
     if (!users || users.length === 0) {

@@ -2,6 +2,7 @@ import { CreateUserDTO } from "./dtos/create-user.dto";
 import { IUser } from "./user";
 import { UserRepository } from "./user.repo";
 import {
+  BadRequestException,
   ConflictException,
   NotFoundException,
 } from "../../shared/exceptions/http.exception";
@@ -11,6 +12,7 @@ export interface IUserService {
   createUser(data: CreateUserDTO): Promise<IUser>;
   getAllUsers(): Promise<IUser[]>;
   findUserByID(id: string): Promise<IUser | null>;
+  findUserByEmail(email: string): Promise<IUser | null>;
   findByUserInfo(data: {
     email?: string;
     name?: string;
@@ -38,6 +40,17 @@ export class UserService implements IUserService {
 
   public async findUserByID(id: string): Promise<IUser | null> {
     const user = await this.userRepository.findUserByID(id);
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+    return user;
+  }
+
+  public async findUserByEmail(email: string): Promise<IUser | null> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
     return user;
   }
 

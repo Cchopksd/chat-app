@@ -17,10 +17,13 @@ export const hashPassword = async (password: string): Promise<string> => {
   });
 };
 
-export const comparePassword = async (
-  password: string,
-  hash: string
-): Promise<boolean> => {
+export const comparePassword = async ({
+  password,
+  hash,
+}: {
+  password: string;
+  hash: string;
+}): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     bcrypt.compare(
       password,

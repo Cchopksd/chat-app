@@ -13,6 +13,7 @@ import {
   notFound,
 } from "../shared/middlewares/error.middleware";
 import { ChatModule } from "../modules/chat/chat.module";
+import { AuthModule } from "../modules/auth/auth.module";
 
 export class App {
   private app: Application;
@@ -46,6 +47,9 @@ export class App {
   private setupRoutes() {
     const userModule = new UserModule(this.rabbitClient);
     this.app.use("/api/users", userModule.createRouter());
+
+    const authModule = new AuthModule(this.rabbitClient);
+    this.app.use("/api/auth", authModule.createRouter());
 
     const chatRoomModule = new ChatRoomModule(this.rabbitClient);
     this.app.use("/api/chat-rooms", chatRoomModule.createRouter());
