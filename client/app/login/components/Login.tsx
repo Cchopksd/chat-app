@@ -6,26 +6,33 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  interface LoginFormValues {
-    email: string;
-    password: string;
-    rememberMe: boolean;
-  }
 
   const handleLogin = async (
     e: React.FormEvent<HTMLFormElement>
   ): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
+    const API = process.env.NEXT_PUBLIC_API_URL;
+
     try {
-      await new Promise<void>((resolve) => setTimeout(resolve, 1500));
-      const loginData: LoginFormValues = { email, password, rememberMe };
-      console.log("Login with:", loginData);
+      if (!API) {
+        throw new Error("API_URL is not defined in the environment variables.");
+      }
+      const response = await fetch(`${API}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      });
+      console.log(response);
+      const data = await response.json();
+
+        if (data.success) {
+          window.location.href = "/chat";
+        }
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Error during login action:", error);
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +120,6 @@ export default function Login() {
           </div>
 
           <div className="flex items-center justify-end">
-
             <div>
               <a
                 href="#"

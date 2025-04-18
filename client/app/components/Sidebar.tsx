@@ -24,10 +24,10 @@ const BottomMenu = [
   { name: "Logout", icon: LogOut, path: "/logout" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ token }: { token?: unknown }) {
   const pathname = usePathname();
+  console.log(token);
 
-  // ถ้าอยากซ่อนไว้จริง ๆ ให้ใช้ return null (แต่ตอนนี้ unused)
   const hiddenRoutes = ["/login", "/register"];
   if (hiddenRoutes.includes(pathname)) return null;
 
