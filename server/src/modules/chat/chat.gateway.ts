@@ -6,6 +6,8 @@ import { ChatService } from "./chat.service";
 import { ChatRepository } from "./chat.repo";
 import { Server } from "http";
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
+import { HydratedDocument } from "mongoose";
+import { IUser } from "../user/user.model";
 
 export class WebSocketGateway {
   private wss: WebSocketServer;
@@ -41,7 +43,6 @@ export class WebSocketGateway {
       socket.on("message", async (data) => {
         try {
           const { type, payload } = JSON.parse(data.toString());
-
           switch (type) {
             case "join":
               currentUser = {
@@ -63,18 +64,11 @@ export class WebSocketGateway {
             case "message":
               if (!currentUser) return;
 
-              const saved = await this.chatService.createChat({
-                room_id: currentUser.roomId,
-                sender_id: currentUser.id,
-                content: payload.message,
-                message_type: payload.message_type || "text",
-              });
-
               this.roomManager.broadcast(
                 currentUser.roomId,
                 {
                   type: "message",
-                  payload: saved,
+                  payload: payload as HydratedDocument<IUser>,
                 },
                 socket // 👈 exclude sender
               );

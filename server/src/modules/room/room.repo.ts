@@ -5,6 +5,7 @@ export interface IChatRoomRepository {
   findChatRoomById(id: string): Promise<IChatRoom | null>;
   findMemberInRoom(roomId: string, memberId: string): Promise<boolean>;
   modifiedMember(data: any): Promise<IChatRoom | null>;
+  findOneToOneRoom(userA: string, userB: string): Promise<IChatRoom | null>;
   findChatRoomsByMember(memberId: string): Promise<IChatRoom[]>;
 }
 
@@ -39,5 +40,12 @@ export class ChatRoomRepository implements IChatRoomRepository {
 
   async findChatRoomsByMember(memberId: string): Promise<IChatRoom[]> {
     return ChatRoomModel.find({ members: memberId }).exec();
+  }
+
+  async findOneToOneRoom(userA: string, userB: string) {
+    return await ChatRoomModel.findOne({
+      type: "one_to_one",
+      members: { $all: [userA, userB], $size: 2 },
+    });
   }
 }

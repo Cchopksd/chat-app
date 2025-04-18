@@ -5,6 +5,7 @@ import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { BadRequestException } from "../../shared/exceptions/http.exception";
 import { QUEUE_NAMES } from "../../shared/rabbitmq/queues";
 import { AddMemberDTO } from "./dtos/add-member.dto";
+import { ObjectId } from "mongodb";
 
 export interface IChatRoomService {
   createChatRoom(data: CreateChatRoomDTO): Promise<IChatRoom>;
@@ -23,18 +24,48 @@ export class ChatRoomService implements IChatRoomService {
       throw new BadRequestException("Duplicate user IDs are not allowed");
     }
 
-    const users = await this.rabbitClient.sendRPC<any[]>(
-      QUEUE_NAMES.USER.GET_USER,
-      { id: data.members }
+    const users = await Promise.all(
+      data.members.map(async (memberId) => {
+        return this.rabbitClient.sendRPC<any[]>(QUEUE_NAMES.USER.GET_USER, {
+          id: memberId,
+        });
+      })
     );
 
-    if (!users || users.length === 0) {
-      throw new BadRequestException("User does not exist");
+    if (
+      !users ||
+      users.length !== data.members.length ||
+      users.some((user) => !user)
+    ) {
+      throw new BadRequestException("One or more users do not exist");
     }
 
-    const newRoom = await this.chatRoomRepository.createChatRoom(data);
+    const isGroup = data.isGroup ?? false;
 
-    return newRoom;
+    if (!isGroup) {
+      const existingRoom = await this.chatRoomRepository.findOneToOneRoom(
+        data.members[0],
+        data.members[1] 
+      );
+
+      if (existingRoom) {
+        return existingRoom;
+      }
+
+      return await this.chatRoomRepository.createChatRoom({
+        ...data,
+        members: data.members.map((member) => new ObjectId(member)),
+        type: "one_to_one",
+        isPrivate: true,
+      });
+    }
+
+    return await this.chatRoomRepository.createChatRoom({
+      name: data.name,
+      members: data.members.map((member) => new ObjectId(member)),
+      type: "group",
+      isPrivate: data.isPrivate ?? true,
+    });
   }
 
   public async getByID(roomID: string): Promise<any | null> {
