@@ -33,7 +33,7 @@ async function bootstrap() {
     const appInstance = new App(rabbitClient);
     const server = http.createServer(appInstance.getApp());
 
-    const wsGateway = new WebSocketGateway(server);
+    const wsGateway = new WebSocketGateway(server, rabbitClient);
     wsGateway.start();
 
     server.listen(PORT, () => {
