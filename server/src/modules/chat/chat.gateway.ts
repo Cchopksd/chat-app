@@ -50,10 +50,14 @@ export class WebSocketGateway {
                 socket,
               };
               this.roomManager.addClient(payload.roomId, currentUser);
-              this.roomManager.broadcast(payload.roomId, {
-                type: "user_joined",
-                payload: { userId: payload.userId },
-              });
+              this.roomManager.broadcast(
+                payload.roomId,
+                {
+                  type: "join",
+                  payload: { userId: payload.userId },
+                },
+                socket // 👈 exclude sender
+              );
               break;
 
             case "message":
@@ -96,7 +100,7 @@ export class WebSocketGateway {
                   type: "stop_typing",
                   payload: { userId: currentUser.id },
                 },
-                socket
+                socket // 👈 exclude sender
               );
               break;
           }

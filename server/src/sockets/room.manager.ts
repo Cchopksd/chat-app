@@ -33,7 +33,7 @@ export class RoomManager {
 
     const messageString = JSON.stringify(message);
     room.forEach((client) => {
-      if (excludeSocket && client.socket !== excludeSocket) {
+      if (client.socket !== excludeSocket) {
         client.socket.send(messageString);
       }
     });
