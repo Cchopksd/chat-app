@@ -2,7 +2,7 @@ import { Document, model, Schema, Types } from "mongoose";
 
 export interface IChatRoom {
   name?: string;
-  members: Types.ObjectId[]; // ดีกว่าใช้ string[]
+  members: Types.ObjectId[];
   type: "one_to_one" | "group";
   isPrivate: boolean;
   createdAt?: Date;

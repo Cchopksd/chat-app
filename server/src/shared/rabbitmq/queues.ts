@@ -8,6 +8,7 @@ export const QUEUE_NAMES = {
   },
   CHAT: {
     GET_CHATS: "chats.get",
+    GET_CHATS_WITH_LIMIT: "chats.get-limit",
   },
 };
 

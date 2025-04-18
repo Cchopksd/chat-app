@@ -1,5 +1,5 @@
 import { CreateChatRoomDTO } from "./dtos/create-room.dto";
-import { IChatRoom } from "./room.model";
+import { IChatRoom, IChatRoomDocument } from "./room.model";
 import { IChatRoomRepository } from "./room.repo";
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { BadRequestException } from "../../shared/exceptions/http.exception";
@@ -10,6 +10,7 @@ import { ObjectId } from "mongodb";
 export interface IChatRoomService {
   createChatRoom(data: CreateChatRoomDTO): Promise<IChatRoom>;
   getByID(roomID: string): Promise<any | null>;
+  findByUser(userID: string): Promise<any>;
   modifiedMember(data: AddMemberDTO): Promise<IChatRoom | null>;
 }
 
@@ -45,7 +46,7 @@ export class ChatRoomService implements IChatRoomService {
     if (!isGroup) {
       const existingRoom = await this.chatRoomRepository.findOneToOneRoom(
         data.members[0],
-        data.members[1] 
+        data.members[1]
       );
 
       if (existingRoom) {
@@ -66,6 +67,31 @@ export class ChatRoomService implements IChatRoomService {
       type: "group",
       isPrivate: data.isPrivate ?? true,
     });
+  }
+  public async findByUser(
+    userID: string
+  ): Promise<{ room: IChatRoomDocument; lastChat: any | null }[]> {
+    const rooms = (await this.chatRoomRepository.findChatRoomsByMember(
+      userID
+    )) as IChatRoomDocument[];
+
+    const result = await Promise.all(
+      rooms.map(async (room) => {
+        const chats = await this.rabbitClient.sendRPC<any[]>(
+          QUEUE_NAMES.CHAT.GET_CHATS_WITH_LIMIT,
+          {
+            id: room._id,
+          }
+        );
+
+        return {
+          room,
+          lastChat: chats?.[0] ?? null,
+        };
+      })
+    );
+
+    return result;
   }
 
   public async getByID(roomID: string): Promise<any | null> {

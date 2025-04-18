@@ -8,6 +8,7 @@ import { ObjectId } from "mongodb";
 export interface IChatService {
   createChat(data: CreateChatDTO): Promise<HydratedDocument<IChat>>;
   findChatByRoomID(id: string): Promise<IChat[]>;
+  findChatByRoomIDWithLimit(id: string): Promise<IChat[]>;
 }
 
 export class ChatService implements IChatService {
@@ -30,6 +31,11 @@ export class ChatService implements IChatService {
 
   public async findChatByRoomID(id: string): Promise<IChat[]> {
     const chats = await this.chatRepository.findChatByRoomID(id);
+    return chats;
+  }
+
+  public async findChatByRoomIDWithLimit(id: string): Promise<IChat[]> {
+    const chats = await this.chatRepository.findChatByRoomIDWithLimit(id);
     return chats;
   }
 }

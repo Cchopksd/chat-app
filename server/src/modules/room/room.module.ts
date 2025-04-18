@@ -8,6 +8,7 @@ import { roomIDSchema } from "./dtos/get-room-id.dto";
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { AuthMiddleware } from "../../shared/middlewares/auth.middleware";
 import { AddMemberSchema } from "./dtos/add-member.dto";
+import { userIDSchema } from "./dtos/get-user-id.dto";
 
 export class ChatRoomModule {
   private chatRoomController: ChatRoomController;
@@ -36,6 +37,13 @@ export class ChatRoomModule {
       validateBody(roomIDSchema, "params"),
       AuthMiddleware.handleAuthentication,
       (req, res) => this.chatRoomController.getByID(req, res)
+    );
+
+    router.get(
+      "/user/:userID",
+      validateBody(userIDSchema, "params"),
+      AuthMiddleware.handleAuthentication,
+      (req, res) => this.chatRoomController.findByUser(req, res)
     );
 
     router.patch(

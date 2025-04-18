@@ -17,6 +17,11 @@ export class ChatRPCConsumer {
       QUEUE_NAMES.CHAT.GET_CHATS,
       this.handleGetChatData.bind(this)
     );
+
+    await this.client.consume(
+      QUEUE_NAMES.CHAT.GET_CHATS_WITH_LIMIT,
+      this.handleGetChatDataWithLimit.bind(this)
+    );
   }
 
   private async handleGetChatData(payload: {
@@ -24,6 +29,13 @@ export class ChatRPCConsumer {
   }): Promise<RpcResponse<any>> {
     const chats = await this.chatService.findChatByRoomID(payload.id);
     return { chats };
+  }
+
+  private async handleGetChatDataWithLimit(payload: {
+    id: string;
+  }): Promise<any> {
+    const chats = await this.chatService.findChatByRoomIDWithLimit(payload.id);
+    return chats;
   }
 }
 
