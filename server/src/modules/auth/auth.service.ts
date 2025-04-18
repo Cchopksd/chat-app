@@ -25,7 +25,6 @@ export class AuthService implements IAuthService {
       QUEUE_NAMES.USER.GET_BY_EMAIL,
       { email: data.email }
     )) as User;
-
     if (!existUser) {
       throw new BadRequestException("Email or Password is incorrect");
     }

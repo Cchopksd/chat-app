@@ -49,9 +49,7 @@ export class UserService implements IUserService {
 
   public async findUserByEmail(email: string): Promise<IUser | null> {
     const user = await this.userRepository.findByEmail(email);
-    if (!user) {
-      throw new BadRequestException("User not found");
-    }
+
     return user;
   }
 

@@ -38,5 +38,15 @@ export class ChatService implements IChatService {
     const chats = await this.chatRepository.findChatByRoomIDWithLimit(id);
     return chats;
   }
+
+  public async getUnreadCount(roomId: string, userId: string): Promise<number> {
+    const messages = await this.chatRepository.findChatByRoomID(roomId);
+
+    const unreadMessages = messages.filter(
+      (message) => !message.readBy.includes(userId)
+    );
+
+    return unreadMessages.length;
+  }
 }
 

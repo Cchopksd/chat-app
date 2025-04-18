@@ -5,7 +5,7 @@ export interface IChat extends Document {
   sender_id: Types.ObjectId;
   content: string;
   message_type?: "text" | "image" | "file";
-  is_read?: boolean;
+  readBy: string[];
 }
 
 const ChatSchema = new Schema<IChat>(
@@ -18,10 +18,7 @@ const ChatSchema = new Schema<IChat>(
       enum: ["text", "image", "file"],
       default: "text",
     },
-    is_read: {
-      type: Boolean,
-      default: false,
-    },
+    readBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );
