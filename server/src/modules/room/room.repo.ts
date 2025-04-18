@@ -1,4 +1,4 @@
-import { IChatRoom, ChatRoomModel } from "./chatRoom.model";
+import { IChatRoom, ChatRoomModel } from "./room.model";
 
 export interface IChatRoomRepository {
   createChatRoom(data: Partial<IChatRoom>): Promise<IChatRoom>;

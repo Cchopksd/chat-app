@@ -1,6 +1,6 @@
 import { CreateChatRoomDTO } from "./dtos/create-room.dto";
-import { IChatRoom } from "./chatRoom.model";
-import { IChatRoomRepository } from "./chatRoom.repo";
+import { IChatRoom } from "./room.model";
+import { IChatRoomRepository } from "./room.repo";
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { BadRequestException } from "../../shared/exceptions/http.exception";
 import { QUEUE_NAMES } from "../../shared/rabbitmq/queues";
@@ -32,12 +32,6 @@ export class ChatRoomService implements IChatRoomService {
       throw new BadRequestException("User does not exist");
     }
 
-    if (data.members.length > 1) {
-      data = {
-        ...data,
-        isGroup: true,
-      };
-    }
     const newRoom = await this.chatRoomRepository.createChatRoom(data);
 
     return newRoom;
@@ -63,10 +57,6 @@ export class ChatRoomService implements IChatRoomService {
 
     if (!existRoom) {
       throw new BadRequestException("Room is not defied");
-    }
-
-    if (!existRoom.isGroup) {
-      throw new BadRequestException("Room is not group");
     }
 
     const room = await this.chatRoomRepository.modifiedMember(data);

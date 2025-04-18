@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { IChatRoomService } from "./chatRoom.service";
+import { IChatRoomService } from "./room.service";
 import { successResponse } from "../../shared/exceptions/http.exception";
 import { CreateChatRoomDTO } from "./dtos/create-room.dto";
 

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { ChatRoomRepository } from "./chatRoom.repo";
-import { ChatRoomService } from "./chatRoom.service";
-import { ChatRoomController } from "./chatRoom.controller";
+import { ChatRoomRepository } from "./room.repo";
+import { ChatRoomService } from "./room.service";
+import { ChatRoomController } from "./room.controller";
 import { validateBody } from "../../shared/utils/validate";
 import { CreateChatRoomSchema } from "./dtos/create-room.dto";
 import { roomIDSchema } from "./dtos/get-room-id.dto";
