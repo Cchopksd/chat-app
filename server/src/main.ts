@@ -5,7 +5,7 @@ dotenv.config();
 
 import { connectToDatabase } from "./configs/database";
 import { RabbitMQService } from "./configs/rabbitmq.connection";
-import { WebSocketGateway } from "./sockets/gateway";
+import { WebSocketGateway } from "./modules/chat/chat.gateway";
 import { App } from "./configs/app";
 
 import { UserModule } from "./modules/user/user.module";

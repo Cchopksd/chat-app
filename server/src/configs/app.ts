@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 
 import { UserModule } from "../modules/user/user.module";
 
-import { ChatRoomModule } from "../modules/chatRoom/chatRoom.module";
+import { ChatRoomModule } from "../modules/room/room.module";
 import { RabbitMQClient } from "../shared/rabbitmq/RabbitMQClient";
 import { ErrorMiddleware } from "../shared/middlewares/error.middleware";
 

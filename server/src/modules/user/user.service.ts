@@ -1,5 +1,5 @@
 import { CreateUserDTO } from "./dtos/create-user.dto";
-import { IUser } from "./user";
+import { IUser } from "./user.model";
 import { UserRepository } from "./user.repo";
 import {
   BadRequestException,
@@ -16,6 +16,7 @@ export interface IUserService {
   findByUserInfo(data: {
     email?: string;
     name?: string;
+    withUser: string;
   }): Promise<IUser[] | []>;
 }
 
@@ -57,6 +58,7 @@ export class UserService implements IUserService {
   public async findByUserInfo(data: {
     email?: string;
     name?: string;
+    withUser: string;
   }): Promise<IUser[] | []> {
     const user = await this.userRepository.findByUserInfo(
       data.email,

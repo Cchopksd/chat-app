@@ -2,7 +2,7 @@
 import { HydratedDocument } from "mongoose";
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { QUEUE_NAMES } from "../../shared/rabbitmq/queues";
-import { IUser } from "./user";
+import { IUser } from "./user.model";
 import { IUserService, UserService } from "./user.service";
 
 export interface RpcResponse<T> {

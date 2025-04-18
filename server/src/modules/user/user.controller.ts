@@ -15,10 +15,11 @@ export class UserController {
   }
 
   public async findByUserInfo(req: Request, res: Response): Promise<void> {
-    const { email, name } = req.query;
+    const { email, name, withUser } = req.query;
     const user = await this.userService.findByUserInfo({
       email: email as string | undefined,
       name: name as string | undefined,
+      withUser: withUser as string,
     });
 
     successResponse(res, user, "User retrieved successfully");

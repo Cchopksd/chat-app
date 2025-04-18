@@ -1,11 +1,16 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { RoomManager } from "./room.manager";
-import { logger } from "../shared/logger/logger";
-import { Client } from "./room.manager";
+import { RoomManager } from "../../sockets/room.manager";
+import { logger } from "../../shared/logger/logger";
+import { Client } from "../../sockets/room.manager";
+import { ChatService } from "./chat.service";
+import { ChatRepository } from "./chat.repo";
+import { Server } from "http";
+import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 
 export class WebSocketGateway {
   private wss: WebSocketServer;
   private roomManager: RoomManager;
+  private chatService: ChatService;
 
   private startHeartbeat() {
     setInterval(() => {
@@ -17,9 +22,12 @@ export class WebSocketGateway {
     }, 30000);
   }
 
-  constructor(server: any) {
+  constructor(server: Server, readonly rabbitClient: RabbitMQClient) {
     this.wss = new WebSocketServer({ server });
     this.roomManager = new RoomManager();
+    const chatRepo: ChatRepository = new ChatRepository();
+    this.chatService = new ChatService(chatRepo, rabbitClient);
+
     this.startHeartbeat();
   }
 
@@ -30,7 +38,7 @@ export class WebSocketGateway {
 
       console.info("🔌 New WebSocket connection established");
 
-      socket.on("message", (data) => {
+      socket.on("message", async (data) => {
         try {
           const { type, payload } = JSON.parse(data.toString());
 
@@ -50,13 +58,22 @@ export class WebSocketGateway {
 
             case "message":
               if (!currentUser) return;
-              this.roomManager.broadcast(currentUser.roomId, {
-                type: "message",
-                payload: {
-                  userId: currentUser.id,
-                  message: payload.message,
-                },
+
+              const saved = await this.chatService.createChat({
+                room_id: currentUser.roomId,
+                sender_id: currentUser.id,
+                content: payload.message,
+                message_type: payload.message_type || "text",
               });
+
+              this.roomManager.broadcast(
+                currentUser.roomId,
+                {
+                  type: "message",
+                  payload: saved,
+                },
+                socket // 👈 exclude sender
+              );
               break;
 
             case "typing":
@@ -103,4 +120,3 @@ export class WebSocketGateway {
     });
   }
 }
-

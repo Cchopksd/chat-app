@@ -1,3 +1,4 @@
+import { HydratedDocument } from "mongoose";
 import { RabbitMQClient } from "../../shared/rabbitmq/RabbitMQClient";
 import { IChat } from "./chat.model";
 import { ChatRepository, IChatRepository } from "./chat.repo";
@@ -5,7 +6,7 @@ import { CreateChatDTO } from "./dtos/create-chat.dto";
 import { ObjectId } from "mongodb";
 
 export interface IChatService {
-  createChat(data: CreateChatDTO): Promise<IChat>;
+  createChat(data: CreateChatDTO): Promise<HydratedDocument<IChat>>;
   findChatByRoomID(id: string): Promise<IChat[]>;
 }
 
@@ -15,7 +16,9 @@ export class ChatService implements IChatService {
     private readonly rabbitClient: RabbitMQClient
   ) {}
 
-  public async createChat(data: CreateChatDTO): Promise<IChat> {
+  public async createChat(
+    data: CreateChatDTO
+  ): Promise<HydratedDocument<IChat>> {
     const chat = await this.chatRepository.createChat({
       ...data,
       room_id: new ObjectId(data.room_id),
