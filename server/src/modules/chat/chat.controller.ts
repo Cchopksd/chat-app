@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { successResponse } from "../../shared/exceptions/http.exception";
-import { ChatService, IChatService } from "./chat.service";
-import { CreateChatDTO } from "./dtos/create-chat.dto";
+import { IChatService } from "./chat.service";
 
 export class ChatController {
   constructor(private readonly chatService: IChatService) {}

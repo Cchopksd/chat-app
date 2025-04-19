@@ -20,13 +20,18 @@ export class ChatService implements IChatService {
   public async createChat(
     data: CreateChatDTO
   ): Promise<HydratedDocument<IChat>> {
-    const chat = await this.chatRepository.createChat({
+    const savedChat = await this.chatRepository.createChat({
       ...data,
       room_id: new ObjectId(data.room_id),
       sender_id: new ObjectId(data.sender_id),
     });
 
-    return chat;
+    await this.rabbitClient.publish("chat_exchange", `room.${data.room_id}`, {
+      roomId: data.room_id,
+      message: savedChat,
+    });
+
+    return savedChat;
   }
 
   public async findChatByRoomID(id: string): Promise<IChat[]> {
