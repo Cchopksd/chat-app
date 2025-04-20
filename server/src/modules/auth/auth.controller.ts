@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { successResponse } from "../../shared/exceptions/http.exception";
+import { logger } from "../../shared/logger/logger";
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -9,8 +10,14 @@ export class AuthController {
     const login: { accessToken: string } = await this.authService.login(
       req.body
     );
-    console.log(req.headers["user-agent"]);
-    if (req.headers["user-agent"]?.includes("Mobile")) {
+    logger.log({
+      level: "info",
+      message: req.headers["user-agent"]?.toString() || "Unknown user-agent",
+    });
+    if (
+      req.headers["user-agent"]?.includes("Mobile") ||
+      req.headers["user-agent"]?.includes("node")
+    ) {
       // For mobile
       successResponse(res, login.accessToken, "Login SuccessFully");
     } else {

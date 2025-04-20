@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
+import { loginAction } from "./action";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,24 +14,12 @@ export default function Login() {
   ): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
-    const API = process.env.NEXT_PUBLIC_API_URL;
 
     try {
-      if (!API) {
-        throw new Error("API_URL is not defined in the environment variables.");
+      const login = await loginAction({ email, password });
+      if (login.success) {
+        window.location.href = "/chat";
       }
-      const response = await fetch(`${API}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
-      });
-      console.log(response);
-      const data = await response.json();
-
-        if (data.success) {
-          window.location.href = "/chat";
-        }
     } catch (error) {
       console.error("Error during login action:", error);
     } finally {

@@ -26,7 +26,7 @@ const BottomMenu = [
 
 export default function Sidebar({ token }: { token?: unknown }) {
   const pathname = usePathname();
-  console.log(token);
+  // console.log(token);
 
   const hiddenRoutes = ["/login", "/register"];
   if (hiddenRoutes.includes(pathname)) return null;

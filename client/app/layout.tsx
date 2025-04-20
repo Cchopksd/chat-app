@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import Sidebar from "./components/Sidebar";
-import { deCodeJWT } from "./utils/token";
+import { decodeJWT } from "./utils/token";
+import { ReduxProvider } from "./libs/redux/provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,15 +25,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const token = await deCodeJWT();
+  const token = await decodeJWT();
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#2e2f2f]`}>
-        <div className="flex h-screen w-full">
-          <Sidebar token={token} />
-          <main className="flex-1 pr-4 py-4 overflow-auto">{children}</main>
-        </div>
+        <ReduxProvider>
+          <div className="flex h-screen w-full">
+            <Sidebar token={token} />
+            <main className="flex-1 pr-4 py-4 overflow-auto">{children}</main>
+          </div>
+        </ReduxProvider>
       </body>
     </html>
   );
