@@ -63,7 +63,6 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({ url, className }) => {
   }, [url]);
 
   useEffect(() => {
-    // Fetches the link preview data when the URL prop changes
     const fetchData = async () => {
       try {
         const data = await fetch(`/api/link-preview?url=${url}`);
@@ -94,15 +93,7 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({ url, className }) => {
   }
 
   if (error || !previewData) {
-    return (
-      <a
-        href={isValidUrl(url) ? url : "#"}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`text-blue-400 hover:underline break-all ${className}`}>
-        {url}
-      </a>
-    );
+    return;
   }
 
   return (

@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { Paperclip, Search, MoreVertical, Phone, Send } from "lucide-react";
 import { useAppSelector } from "@/app/libs/redux/store";
-import formatTime from "@/app/utils/dateFormat";
 import { fetchChats, sendMessage } from "./action";
 import { JwtPayload } from "jsonwebtoken";
 import MessageBubble from "./MessageBubble";
@@ -39,21 +38,29 @@ interface ChatRoomData {
   chats: ChatMessage[];
 }
 
-let socket: WebSocket | null = null;
-let typingTimeoutId: NodeJS.Timeout | null = null;
-
 export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
   const { room } = useAppSelector((state) => state.chat);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [roomInfo, setRoomInfo] = useState<ChatRoomData | null>(null);
   const [inputMessage, setInputMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const currentUserId = userInfo.user_id;
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (room) {
@@ -61,10 +68,8 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
     }
   }, [room]);
 
-  // ใช้ useLayoutEffect เพื่อให้การ scroll ทำงานก่อนที่ component จะ render ให้ผู้ใช้เห็น
   useLayoutEffect(() => {
     if (messagesContainerRef.current) {
-      // Scroll ไปที่ด้านล่างสุดทันทีโดยไม่มีการ animate
       messagesContainerRef.current.scrollTop =
         messagesContainerRef.current.scrollHeight;
     }
@@ -76,48 +81,37 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
     const WEBSOCKET_URL =
       process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:5000/";
     const ws = new WebSocket(WEBSOCKET_URL);
-    socket = ws;
+    socketRef.current = ws;
 
     ws.onopen = () => {
       console.log("✅ WebSocket connected");
-      // ส่ง join event
       ws.send(
         JSON.stringify({
           type: "join",
-          payload: {
-            userId: currentUserId,
-            roomId: room,
-          },
+          payload: { userId: currentUserId, roomId: room },
         })
       );
     };
 
     ws.onmessage = (event) => {
+      if (!isMounted.current) return;
       const message = JSON.parse(event.data);
+
       switch (message.type) {
         case "joined":
           console.log(`👤 User joined: ${message.payload.userId}`);
           break;
         case "user_left":
-          console.log(`👋 User left: ${message.payload.userId}`);
-          if (typingUsers.has(message.payload.userId)) {
-            const newTypingUsers = new Set(typingUsers);
-            newTypingUsers.delete(message.payload.userId);
-            setTypingUsers(newTypingUsers);
-          }
+        case "stop_typing":
+          setTypingUsers((prev) => {
+            const updated = new Set(prev);
+            updated.delete(message.payload.userId);
+            return updated;
+          });
           break;
         case "typing":
           if (message.payload.userId !== currentUserId) {
-            const newTypingUsers = new Set(typingUsers);
-            newTypingUsers.add(message.payload.userId);
-            setTypingUsers(newTypingUsers);
-          }
-          break;
-        case "stop_typing":
-          if (typingUsers.has(message.payload.userId)) {
-            const newTypingUsers = new Set(typingUsers);
-            newTypingUsers.delete(message.payload.userId);
-            setTypingUsers(newTypingUsers);
+            setTypingUsers((prev) => new Set(prev).add(message.payload.userId));
           }
           break;
         case "new_message":
@@ -130,23 +124,19 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
 
     ws.onerror = (error) => {
       console.error("❌ WebSocket error", error);
-      setError("เกิดข้อผิดพลาดในการเชื่อมต่อ WebSocket");
-    };
-
-    ws.onclose = () => {
-      console.log("❎ WebSocket disconnected");
+      if (isMounted.current) setError("เกิดข้อผิดพลาดในการเชื่อมต่อ WebSocket");
     };
 
     const pingInterval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "ping" }));
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        socketRef.current.send(JSON.stringify({ type: "ping" }));
       }
     }, 30000);
 
     return () => {
-      ws.close(); // cleanup
+      ws.close();
       clearInterval(pingInterval);
-      if (typingTimeoutId) clearTimeout(typingTimeoutId);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [room, currentUserId]);
 
@@ -171,64 +161,36 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !room) return;
+    if (!inputMessage.trim() || !room || isSending) return;
+
+    setIsSending(true);
+    const messageToSend = inputMessage;
+    setInputMessage("");
+    sendTypingStatus(false);
 
     try {
-      const tempId = `temp-${Date.now()}`;
-      const mockMessage: ChatMessage = {
-        _id: tempId,
+      const response = await sendMessage({
         room_id: room,
         sender_id: currentUserId,
-        content: inputMessage,
-        message_type: "text",
-        readBy: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        __v: 0,
-      };
-
-      setInputMessage("");
-
-      // ส่ง stop_typing event
-      sendTypingStatus(false);
-
-      // ส่งข้อความไปยัง server
-      const response = await sendMessage({
-        room_id: "67fe38875c2fca24a9c8f302",
-        sender_id: "67fb26723aadcb7386f733fc",
-        content: "asdfasdfdasfasdfa",
+        content: messageToSend,
         message_type: "text",
       });
 
       if (!response.success) {
         throw new Error(response.message);
       }
-
-      // ส่งข้อความผ่าน WebSocket ถ้าต้องการให้ real-time มากขึ้น
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(
-          JSON.stringify({
-            type: "message",
-            payload: {
-              roomId: room,
-              message: {
-                ...mockMessage,
-                _id: response.data._id, // ใช้ ID จริงจาก response
-              },
-            },
-          })
-        );
-      }
     } catch (err) {
       console.error("Error sending message:", err);
       alert("ไม่สามารถส่งข้อความได้");
+      setInputMessage(messageToSend);
+    } finally {
+      setIsSending(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputMessage(e.target.value);
 
-    // ส่ง typing status
     if (e.target.value.trim()) {
       sendTypingStatus(true);
     } else {
@@ -237,67 +199,53 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
   };
 
   const sendTypingStatus = (isTyping: boolean) => {
-    if (!socket || socket.readyState !== WebSocket.OPEN || !room) return;
+    if (
+      !socketRef.current ||
+      socketRef.current.readyState !== WebSocket.OPEN ||
+      !room
+    )
+      return;
 
-    // ยกเลิก timeout ก่อนหน้า (ถ้ามี)
-    if (typingTimeoutId) {
-      clearTimeout(typingTimeoutId);
-      typingTimeoutId = null;
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
     }
+
+    const type = isTyping ? "typing" : "stop_typing";
+
+    socketRef.current.send(
+      JSON.stringify({
+        type,
+        payload: {
+          userId: currentUserId,
+          roomId: room,
+        },
+      })
+    );
 
     if (isTyping) {
-      socket.send(
-        JSON.stringify({
-          type: "typing",
-          payload: {
-            userId: currentUserId,
-            roomId: room,
-          },
-        })
-      );
-
-      // ตั้ง timeout สำหรับ stop_typing
-      typingTimeoutId = setTimeout(() => {
+      typingTimeoutRef.current = setTimeout(() => {
         sendTypingStatus(false);
-      }, 3000); // หยุด typing หลังจาก 3 วินาที
-    } else {
-      socket.send(
-        JSON.stringify({
-          type: "stop_typing",
-          payload: {
-            userId: currentUserId,
-            roomId: room,
-          },
-        })
-      );
+      }, 3000);
     }
   };
 
-  const isCurrentUserMessage = (senderId: string | UserInfo) => {
-    if (typeof senderId === "object" && senderId !== null) {
-      return senderId._id === currentUserId;
-    }
-    return senderId === currentUserId;
+  const extractUserInfo = (sender: string | UserInfo): UserInfo => {
+    if (typeof sender === "object" && sender !== null) return sender;
+    return { _id: sender, name: "", email: "", createdAt: "", updatedAt: "" };
   };
 
-  const getSenderName = (sender: string | UserInfo) => {
-    if (typeof sender === "object" && sender !== null) {
-      return sender.name || "ไม่ระบุชื่อ";
-    }
-    return sender.substring(0, 8) + "...";
-  };
+  const isCurrentUserMessage = (senderId: string | UserInfo) =>
+    extractUserInfo(senderId)._id === currentUserId;
 
-  const getSenderInitial = (sender: string | UserInfo) => {
-    if (typeof sender === "object" && sender !== null) {
-      return sender.name ? sender.name.charAt(0).toUpperCase() : "U";
-    }
-    return "U";
-  };
+  const getSenderName = (sender: string | UserInfo) =>
+    extractUserInfo(sender).name || "ไม่ระบุชื่อ";
 
-  // เรียงข้อความจากใหม่ไปเก่า
-  const sortedMessages = [...messages].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
+  const getSenderInitial = (sender: string | UserInfo) =>
+    extractUserInfo(sender).name?.charAt(0).toUpperCase() || "U";
+
+  const getUserId = (sender: string | UserInfo): string =>
+    extractUserInfo(sender)._id;
 
   const getRandomColor = (userId: string) => {
     const colors = [
@@ -314,27 +262,17 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
     return colors[index];
   };
 
-  const getUserId = (sender: string | UserInfo): string => {
-    if (typeof sender === "object" && sender !== null) {
-      return sender._id;
-    }
-    return sender;
-  };
+  const sortedMessages = [...messages].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
 
-  // แสดงข้อความว่าใครกำลัง typing
   const renderTypingIndicator = () => {
     if (typingUsers.size === 0) return null;
 
-    const typingUsersList = Array.from(typingUsers);
-    let typingText = "";
-
-    if (typingUsersList.length === 1) {
-      typingText = "กำลังพิมพ์...";
-    } else if (typingUsersList.length === 2) {
-      typingText = "2 คนกำลังพิมพ์...";
-    } else {
-      typingText = `${typingUsersList.length} คนกำลังพิมพ์...`;
-    }
+    const typingText =
+      typingUsers.size === 1
+        ? "กำลังพิมพ์..."
+        : `${typingUsers.size} คนกำลังพิมพ์...`;
 
     return (
       <div className="text-xs text-gray-400 italic ml-2 mt-1">{typingText}</div>
@@ -359,15 +297,13 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
           </p>
         </div>
         <div className="ml-auto flex space-x-2">
-          <button className="p-2 text-gray-400 hover:bg-gray-800 rounded-full transition-colors">
-            <Phone size={20} />
-          </button>
-          <button className="p-2 text-gray-400 hover:bg-gray-800 rounded-full transition-colors">
-            <Search size={20} />
-          </button>
-          <button className="p-2 text-gray-400 hover:bg-gray-800 rounded-full transition-colors">
-            <MoreVertical size={20} />
-          </button>
+          {[Phone, Search, MoreVertical].map((Icon, i) => (
+            <button
+              key={i}
+              className="p-2 text-gray-400 hover:bg-gray-800 rounded-full transition-colors">
+              <Icon size={20} />
+            </button>
+          ))}
         </div>
       </div>
 
@@ -425,19 +361,18 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
       {/* Typing Indicator */}
       {renderTypingIndicator()}
 
-      {/* Input */}
+      {/* Input Box */}
       <div className="p-4 bg-gray-800 border-t border-gray-700 rounded-b-xl">
         <div className="flex items-center">
           <button className="p-2 text-gray-400 hover:bg-gray-700 rounded-full mr-2 transition-colors">
             <Paperclip size={20} />
           </button>
-          <input
-            type="text"
+          <textarea
             placeholder="พิมพ์ข้อความ..."
             value={inputMessage}
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600"
+            className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600 resize-none"
+            rows={1}
             disabled={!room}
           />
           <button

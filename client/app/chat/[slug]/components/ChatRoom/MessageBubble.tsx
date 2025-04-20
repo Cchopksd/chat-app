@@ -1,4 +1,3 @@
-// components/MessageBubble.tsx
 import React from "react";
 import { LinkPreview, extractUrls } from "./ChatPreview";
 import formatTime from "@/app/utils/dateFormat";
@@ -33,11 +32,9 @@ const MessageBubble: React.FC<MessageProps> = ({
   senderInitial,
   senderColor,
 }) => {
-  // แยก URLs จากข้อความ
   const urls = extractUrls(message.content);
   const hasUrls = urls.length > 0;
 
-  // แทนที่ URLs ด้วยลิงก์ที่คลิกได้
   const renderMessageContent = () => {
     if (!hasUrls) {
       return (
@@ -48,12 +45,10 @@ const MessageBubble: React.FC<MessageProps> = ({
     const content = message.content;
     const elements: React.ReactNode[] = [];
 
-    // แยกข้อความโดยรอบ URLs และสร้าง elements
     let lastIndex = 0;
     urls.forEach((url, idx) => {
       const urlIndex = content.indexOf(url, lastIndex);
 
-      // เพิ่มข้อความก่อน URL
       if (urlIndex > lastIndex) {
         elements.push(
           <span key={`text-${idx}`}>
@@ -62,7 +57,6 @@ const MessageBubble: React.FC<MessageProps> = ({
         );
       }
 
-      // เพิ่มลิงก์
       elements.push(
         <a
           key={`url-${idx}`}
@@ -77,7 +71,6 @@ const MessageBubble: React.FC<MessageProps> = ({
       lastIndex = urlIndex + url.length;
     });
 
-    // เพิ่มข้อความที่เหลือหลัง URL สุดท้าย
     if (lastIndex < content.length) {
       elements.push(
         <span key="text-last">{content.substring(lastIndex)}</span>
@@ -88,16 +81,30 @@ const MessageBubble: React.FC<MessageProps> = ({
   };
 
   return (
-    <div className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-      {!isCurrentUser && showSenderInfo && (
-        <div
-          className={`h-8 w-8 ${senderColor} rounded-full flex items-center justify-center text-white font-bold mr-2 mt-1`}>
-          {senderInitial}
-        </div>
-      )}
-      <div>
+    <div
+      className={`flex mb-2 ${
+        isCurrentUser ? "justify-end" : "justify-start"
+      }`}>
+      <div className={`flex-shrink-0 ${isCurrentUser ? "w-0" : "w-10 mr-2"}`}>
+        {" "}
+        {!isCurrentUser && (
+          <div className="flex-shrink-0 mr-2 mt-1">
+            {showSenderInfo && (
+              <div
+                className={`h-8 w-8 ${senderColor} rounded-full flex items-center justify-center text-white font-bold`}>
+                {senderInitial}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div
+        className={`flex flex-col ${
+          isCurrentUser ? "items-end" : "items-start"
+        }`}>
         {!isCurrentUser && showSenderInfo && (
-          <div className="font-medium text-xs text-gray-400 mb-1 ml-2">
+          <div className="font-medium text-xs text-gray-400 mb-1">
             {senderName}
           </div>
         )}
@@ -116,9 +123,8 @@ const MessageBubble: React.FC<MessageProps> = ({
           </div>
         </div>
 
-        {/* Link Previews */}
         {hasUrls && (
-          <div className={`mt-1 ${isCurrentUser ? "pl-12" : "pr-12"}`}>
+          <div className={`mt-1 ${isCurrentUser ? "pr-0" : "pl-0"}`}>
             {urls.map((url, index) => (
               <LinkPreview
                 key={`preview-${index}`}
