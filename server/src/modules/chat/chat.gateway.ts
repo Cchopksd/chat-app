@@ -136,7 +136,7 @@ export class WebSocketGateway {
       socket.on("message", async (data) => {
         try {
           const message: WebSocketMessage = JSON.parse(data.toString());
-
+          console.log(message);
           if (!message.type || !message.payload) {
             throw new Error("Invalid message format");
           }
