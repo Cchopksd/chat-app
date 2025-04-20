@@ -131,12 +131,16 @@ export class WebSocketGateway {
 
     this.wss.on("connection", (socket: WebSocket) => {
       let currentUser: Client | null = null;
-      console.info("🔌 New WebSocket connection established");
 
       socket.on("message", async (data) => {
         try {
           const message: WebSocketMessage = JSON.parse(data.toString());
-          console.log(message);
+
+          if (message.type === "ping") {
+            socket.send(JSON.stringify({ type: "pong" }));
+            return;
+          }
+
           if (!message.type || !message.payload) {
             throw new Error("Invalid message format");
           }
