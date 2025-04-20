@@ -18,8 +18,17 @@
 - สามารถกระจายข้อมูล (broadcast) ไปยัง `clients` หลายรายได้อย่างมีประสิทธิภาพ
 
 ```mermaid
-graph TD
-  A[Service A] -->|RPC| B[Service B]
-  B -->|Pub/Sub| C[Message Broker (RabbitMQ)]
-  C --> D[Client 1]
-  C --> E[Client 2]
+sequenceDiagram
+    participant Client
+    participant REST_API
+    participant Database
+    participant RabbitMQ
+    participant WebSocket
+    participant OtherClients
+
+    Client->>REST_API: 1. POST /messages (บันทึกข้อความ)
+    REST_API->>Database: 2. บันทึกข้อความ
+    REST_API->>RabbitMQ: 3. Publish Event (New Message)
+    RabbitMQ->>WebSocket: 4. Consume Event
+    WebSocket->>OtherClients: 5. Broadcast ข้อความ
+```
