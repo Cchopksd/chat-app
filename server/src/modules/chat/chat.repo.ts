@@ -14,7 +14,9 @@ export class ChatRepository implements IChatRepository {
   }
 
   async findChatByRoomID(id: string): Promise<IChat[]> {
-    const chat = await ChatModel.find({ room_id: id }).sort({ createdAt: -1 });
+    const chat = await ChatModel.find({ room_id: id })
+      .populate("sender_id")
+      .sort({ createdAt: -1 });
     return chat;
   }
 
