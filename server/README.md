@@ -15,6 +15,20 @@
 ### จุดประสงค์หลัก
 
 - เพื่อใช้ส่งข้อความระหว่าง `services`
+```mermaid
+sequenceDiagram
+    participant Client as Client Service (A)
+    participant RabbitMQ as RabbitMQ Broker
+    participant Server as Server Service (B)
+    
+    Client->>RabbitMQ: 1. Request (correlation_id, reply_to)
+    Note right of Client: Includes: <br/>- Method name<br/>- Parameters<br/>- correlation_id<br/>- reply_to queue
+    RabbitMQ->>Server: 2. Deliver to RPC Queue
+    Server->>Server: 3. Process Request
+    Server->>RabbitMQ: 4. Response (correlation_id)
+    RabbitMQ->>Client: 5. Deliver to reply_to queue
+    Client->>Client: Match correlation_id & process
+```
 - สามารถกระจายข้อมูล (broadcast) ไปยัง `clients` หลายรายได้อย่างมีประสิทธิภาพ
 
 ```mermaid
