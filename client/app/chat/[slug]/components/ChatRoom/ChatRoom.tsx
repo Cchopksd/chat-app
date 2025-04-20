@@ -334,6 +334,7 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
         ) : (
           <div className="space-y-4 flex flex-col">
             {sortedMessages.map((message, index) => {
+
               const isCurrentUser = isCurrentUserMessage(message.sender_id);
               const senderId = getUserId(message.sender_id);
               const showSenderInfo =
@@ -371,8 +372,13 @@ export default function ChatRoom({ userInfo }: { userInfo: JwtPayload }) {
             placeholder="พิมพ์ข้อความ..."
             value={inputMessage}
             onChange={handleInputChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
             className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600 resize-none"
-            rows={1}
             disabled={!room}
           />
           <button
