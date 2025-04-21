@@ -19,8 +19,8 @@ This project leverages the following technologies:
 - **Node.js**: Backend runtime for building scalable server-side applications.
 - **Express**: Lightweight and flexible Node.js web application framework.
 - **Socket.IO**: Enables real-time, bi-directional communication between clients and the server.
-- **RabbitMQ**: Message broker for asynchronous communication between microservices.
-- **React**: Frontend library for building dynamic and interactive user interfaces.
+- **RabbitMQ**: Message broker for asynchronous communication between service and pub/sub.
+- **Next.js**: Frontend library for building dynamic and interactive user interfaces.
 - **Tailwind CSS**: Utility-first CSS framework for rapid UI development.
 - **MongoDB**: NoSQL database for storing user data and chat history.
 
